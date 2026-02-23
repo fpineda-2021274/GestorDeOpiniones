@@ -1,0 +1,255 @@
+{
+  "info": {
+    "name": "Facebook Opinion System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3005/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "postId", "value": "" },
+    { "key": "commentId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "🔐 AUTH",
+      "item": [
+        {
+          "name": "Registrar usuario",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Pérez\",\n  \"username\": \"juanperez\",\n  \"email\": \"juan@gmail.com\",\n  \"password\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login con email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) pm.collectionVariables.set('token', res.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"juan@gmail.com\",\n  \"password\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login con username",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"juanperez\",\n  \"password\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Ver mi perfil",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/profile",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Editar perfil",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/auth/profile",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Carlos Pérez\",\n  \"username\": \"juancarlos\",\n  \"currentPassword\": \"123456\",\n  \"newPassword\": \"nuevapass123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 PUBLICACIONES",
+      "item": [
+        {
+          "name": "Crear publicación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set('postId', res.data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/posts",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Mi primera opinión\",\n  \"category\": \"Tecnología\",\n  \"content\": \"Creo que la IA va a cambiar el mundo de maneras que aún no imaginamos.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Obtener todas las publicaciones",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/posts?page=1&limit=10",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "category", "value": "", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Obtener publicación por ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/posts/{{postId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Editar publicación",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/posts/{{postId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Mi opinión actualizada\",\n  \"content\": \"Texto editado con más información.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar publicación",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/posts/{{postId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 COMENTARIOS",
+      "item": [
+        {
+          "name": "Comentar en una publicación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set('commentId', res.data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/comments/post/{{postId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Muy buen punto, totalmente de acuerdo contigo!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Responder un comentario (re-comentario)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/comments/post/{{postId}}/reply/{{commentId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Gracias por tu respuesta, yo también lo creo!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Ver comentarios de una publicación",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/comments/post/{{postId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Editar comentario",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/comments/{{commentId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Comentario editado correctamente.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar comentario",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/comments/{{commentId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "❤️ HEALTH CHECK",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    }
+  ]
+}
